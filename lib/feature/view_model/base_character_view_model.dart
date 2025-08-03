@@ -12,7 +12,7 @@ abstract class BaseCharactersViewModel extends AsyncNotifier<List<Character>> {
   final GraphCharacterRepository _graphRepo;
 
   late CharacterRepository _currRepo;
-  late int maxPage;
+  late int maxPages;
   int pageIndex = 1;
 
   BaseCharactersViewModel(this._restRepo, this._graphRepo);
@@ -29,7 +29,7 @@ abstract class BaseCharactersViewModel extends AsyncNotifier<List<Character>> {
       pageIndex: pageIndex,
       filters: filters,
     );
-    maxPage = data["maxPages"] as int;
+    maxPages = data["maxPages"] as int;
     pageIndex += 1;
 
     ref.watch(isLoadingProvider.notifier).state = false;
@@ -38,7 +38,7 @@ abstract class BaseCharactersViewModel extends AsyncNotifier<List<Character>> {
   }
 
   Future<void> loadItems() async {
-    if (pageIndex <= maxPage && !ref.read(isLoadingProvider)) {
+    if (pageIndex > maxPages || ref.read(isLoadingProvider)) {
       return;
     }
     state = await AsyncValue.guard(() async {
@@ -52,6 +52,7 @@ abstract class BaseCharactersViewModel extends AsyncNotifier<List<Character>> {
       final newState = List.of(state.value!);
       newState.addAll(data["results"] as List<Character>);
       pageIndex += 1;
+      maxPages = data["maxPages"] as int;
 
       ref.watch(isLoadingProvider.notifier).state = false;
       return newState;
